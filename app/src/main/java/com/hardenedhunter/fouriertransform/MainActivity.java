@@ -4,12 +4,15 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +21,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,7 +35,7 @@ import java.util.UUID;
 import static android.R.layout.simple_list_item_1;
 
 public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnCompletionListener {
+        MediaPlayer.OnCompletionListener, IPlayerEventListener, ISettingsEventListener {
     // UUID этого устройства для Bluetooth
     private static final UUID deviceUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -43,23 +50,56 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     // Плеер, который играет музыку
     private MediaPlayer mediaPlayer;
 
+    private Fragment fragmentPlayer;
+    private Fragment fragmentSettings;
+
+    private TextView viewDevice;
+    private ListView devicesView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        fragmentPlayer = getSupportFragmentManager().findFragmentById(R.id.frameLayoutPlayer);
+        fragmentSettings = getSupportFragmentManager().findFragmentById(R.id.frameLayoutSettings);
+
+        if (fragmentPlayer == null)
+            Log.println(Log.ERROR, "null", "player is null");
+
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        TextView viewDevice = findViewById(R.id.textViewDevice);
-        viewDevice.setText(bluetoothAdapter.getName());
+
+        loadFragment(PlayerFragment.newInstance());
+//        TextView viewDevice = fragmentSettings.getView().findViewById(R.id.textViewDevice);
+//        viewDevice.setText(bluetoothAdapter.getName());
 
         // Запрашиваем разрешение на всё
         showPermission(Manifest.permission.RECORD_AUDIO, REQUEST_PERMISSION_RECORD_AUDIO);
         showPermission(Manifest.permission.BLUETOOTH, REQUEST_PERMISSION_BLUETOOTH);
         showPermission(Manifest.permission.BLUETOOTH_ADMIN, REQUEST_PERMISSION_BLUETOOTH_ADMIN);
 
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottomNavigationViewMain);
+        navigation.setOnNavigationItemSelectedListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.navigation_home:
+                    loadFragment(PlayerFragment.newInstance());
+                    return true;
+                case R.id.navigation_settings:
+                    loadFragment(SettingsFragment.newInstance());
+                    return true;
+            }
+            return false;
+        });
+
         if (bluetoothAdapter.isEnabled()) {
             setup(bluetoothAdapter);
         }
+    }
+
+    private void loadFragment(Fragment fragment) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.replace(R.id.constraintLayoutContent, fragment);
+        ft.commit();
     }
 
     // Создание списка сопряжённых Bluetooth-устройств
@@ -95,23 +135,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         mp.start();
     }
 
-    // Обработчик кнопок для управления плееером (старт, пауза, стоп и т. п.)
-    public void onAudioControlClick(View view) {
-        if (mediaPlayer == null)
-            return;
-        switch (view.getId()) {
-            case R.id.buttonPlayPause:
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.pause();
-                } else {
-                    mediaPlayer.start();
-                }
-                break;
-            case R.id.buttonStop:
-                mediaPlayer.stop();
-                break;
-        }
-    }
 
     // Поток для коннекта с Bluetooth, надо бы его вынести и сделать с callback'ом,
     // который принимает сокет
@@ -161,46 +184,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         }
     }
 
-    // Обработчик кнопок для старта музыки, их надо убрать и сделать список музыки с девайса.
-    // Все песни пока лежат в ./res/raw
-    // Также есть одна идея с audioSessionId, свяжишь со мной как дойдёшь сюда.
-    public void onSongClick(View view) {
-        releaseMediaPlayer();
-        if (receiver == null)
-            receiver = new FrequencyReceiver(transmitter);
-        int song = 0;
-        switch (view.getId()) {
-            case R.id.buttonDrake:
-                song = R.raw.drake;
-                break;
-            case R.id.buttonSamurai:
-                song = R.raw.ohlsson;
-                break;
-            case R.id.buttonFool:
-                song = R.raw.fool;
-                break;
-            case R.id.button5Khz:
-                song = R.raw.b5;
-                break;
-            case R.id.button20Khz:
-                song = R.raw.b20;
-                break;
-        }
 
-        if (song == 0)
-            return;
-
-        mediaPlayer = MediaPlayer.create(this, song);
-        mediaPlayer.start();
-
-        // Берёт сессию музыки у плеера и передает ресиверу,
-        // который будет брать из неё аудиоволны
-        int audioSessionId = mediaPlayer.getAudioSessionId();
-        if (audioSessionId != -1) {
-            receiver.startSession(audioSessionId);
-        }
-        mediaPlayer.setOnCompletionListener(this);
-    }
 
     // Релиз захваченных ресурсов
     private void releaseMediaPlayer() {
@@ -219,11 +203,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         }
     }
 
-    public void OnWaveClick(View view) {
-        if (waveGenerator != null) {
-            waveGenerator.start();
-        }
-    }
+
 
     // Поток для генерации волны, не связан с музыкой и просто отправляет
     // значения каждые сколько-то мс
@@ -297,5 +277,73 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         ActivityCompat.requestPermissions(this,
                 new String[]{permissionName}, permissionRequestCode);
     }
+
+    //region listeners
+    @Override
+    public void startPauseEvent() {
+        if (mediaPlayer == null)
+            return;
+        if (mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        } else {
+            mediaPlayer.start();
+        }
+    }
+
+    @Override
+    public void songSelectedEvent(int song) {
+        releaseMediaPlayer();
+        if (receiver == null)
+            receiver = new FrequencyReceiver(transmitter);
+        if (song == 0)
+            return;
+
+        mediaPlayer = MediaPlayer.create(this, song);
+        mediaPlayer.start();
+
+        // Берёт сессию музыки у плеера и передает ресиверу,
+        // который будет брать из неё аудиоволны
+        int audioSessionId = mediaPlayer.getAudioSessionId();
+        Log.println(Log.DEBUG, "Audio", "started session with audioSessionId=" + audioSessionId);
+        if (audioSessionId != -1) {
+            receiver.startSession(audioSessionId);
+        }
+        mediaPlayer.setOnCompletionListener(this);
+    }
+
+    @Override
+    public void stopEvent() {
+        if (mediaPlayer == null)
+            return;
+        mediaPlayer.stop();
+    }
+
+    @Override
+    public void sinEvent() {
+        if (waveGenerator != null) {
+            waveGenerator.start();
+        }
+    }
+
+    @Override
+    public void currentPlayingSelectedEvent() {
+        AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        int audioSessionId = manager.getActiveRecordingConfigurations().get(0).getClientAudioSessionId() - 8;
+        Log.println(Log.DEBUG, "Audio", "current audioSessionId=" + audioSessionId);
+        // Берёт сессию музыки у плеера и передает ресиверу,
+        // который будет брать из неё аудиоволны
+        if (audioSessionId != -1) {
+            receiver.startSession(audioSessionId);
+        }
+        mediaPlayer.setOnCompletionListener(this);
+    }
+
+    @Override
+    public void macSelectedEvent(BluetoothAdapter bluetoothAdapter, String mac) {
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mac);
+        bluetoothConnector = new ThreadBluetoothConnector(device);
+        bluetoothConnector.start();  // Запускаем поток для подключения Bluetooth
+    }
+    // endregion
 }
 
