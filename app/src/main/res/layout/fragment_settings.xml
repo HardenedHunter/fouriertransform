@@ -19,8 +19,8 @@
 
     <ListView
         android:id="@+id/listBluetooth"
-        android:layout_width="346dp"
-        android:layout_height="118dp"
+        android:layout_width="354dp"
+        android:layout_height="599dp"
         android:layout_marginTop="20dp"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"

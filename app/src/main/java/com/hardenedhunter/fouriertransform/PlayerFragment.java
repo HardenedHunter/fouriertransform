@@ -109,10 +109,6 @@ public class PlayerFragment extends Fragment {
         playerEventListener.songSelectedEvent(song);
     }
 
-    public void onCurrentClick(View view) {
-        playerEventListener.currentPlayingSelectedEvent();
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

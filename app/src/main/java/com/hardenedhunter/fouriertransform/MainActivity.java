@@ -10,9 +10,8 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,62 +48,68 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private ThreadWave waveGenerator;
     // Плеер, который играет музыку
     private MediaPlayer mediaPlayer;
-
-    private Fragment fragmentPlayer;
-    private Fragment fragmentSettings;
-
-    private TextView viewDevice;
-    private ListView devicesView;
+    // Адаптер Bluetooth
+    private BluetoothAdapter bluetoothAdapter;
+    private Bundle settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fragmentPlayer = getSupportFragmentManager().findFragmentById(R.id.frameLayoutPlayer);
-        fragmentSettings = getSupportFragmentManager().findFragmentById(R.id.frameLayoutSettings);
+        settings = new Bundle();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter.isEnabled()) {
+            settings = setup(bluetoothAdapter);
+        }
 
-        if (fragmentPlayer == null)
-            Log.println(Log.ERROR, "null", "player is null");
-
-        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        loadFragment(PlayerFragment.newInstance());
-//        TextView viewDevice = fragmentSettings.getView().findViewById(R.id.textViewDevice);
-//        viewDevice.setText(bluetoothAdapter.getName());
+        loadSettings(settings);
+        loadPlayer();
 
         // Запрашиваем разрешение на всё
         showPermission(Manifest.permission.RECORD_AUDIO, REQUEST_PERMISSION_RECORD_AUDIO);
         showPermission(Manifest.permission.BLUETOOTH, REQUEST_PERMISSION_BLUETOOTH);
         showPermission(Manifest.permission.BLUETOOTH_ADMIN, REQUEST_PERMISSION_BLUETOOTH_ADMIN);
+        showPermission(Manifest.permission.READ_EXTERNAL_STORAGE, REQUEST_PERMISSION_READ_STORAGE);
+        showPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUEST_PERMISSION_WRITE_STORAGE);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottomNavigationViewMain);
-        navigation.setOnNavigationItemSelectedListener(item -> {
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    loadFragment(PlayerFragment.newInstance());
-                    return true;
-                case R.id.navigation_settings:
-                    loadFragment(SettingsFragment.newInstance());
-                    return true;
-            }
-            return false;
-        });
 
-        if (bluetoothAdapter.isEnabled()) {
-            setup(bluetoothAdapter);
-        }
+        navigation.setOnNavigationItemSelectedListener(this::onNavigationItemSelectedListener);
     }
 
-    private void loadFragment(Fragment fragment) {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.constraintLayoutContent, fragment);
-        ft.commit();
+    private boolean onNavigationItemSelectedListener(MenuItem menuItem) {
+        switch (menuItem.getItemId()) {
+            case R.id.navigation_home:
+                loadPlayer();
+                return true;
+            case R.id.navigation_settings:
+                loadSettings(settings);
+                return true;
+        }
+        return false;
+    }
+
+    private void loadSettings(Bundle settings) {
+        Fragment fragment = new SettingsFragment();
+        fragment.setArguments(settings);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.constraintLayoutContent, fragment)
+                .commitNow();
+    }
+
+    private void loadPlayer() {
+        Fragment fragment = new PlayerFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.constraintLayoutContent, fragment)
+                .commitNow();
     }
 
     // Создание списка сопряжённых Bluetooth-устройств
-    private void setup(BluetoothAdapter bluetoothAdapter) {
-        ListView devicesView = findViewById(R.id.listBluetooth);
+    private Bundle setup(BluetoothAdapter bluetoothAdapter) {
+        Bundle bundleSettings = new Bundle();
         Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
         // Если есть сопряжённые устройства
         if (pairedDevices.size() > 0) {
@@ -112,18 +117,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
             // Добавляем сопряжённые устройства в список на экране - Имя + MAC-адресс
             for (BluetoothDevice device : pairedDevices)
                 pairedDeviceArrayList.add(device.getName() + "\n" + device.getAddress());
-            ArrayAdapter<String> pairedDeviceAdapter = new ArrayAdapter<>(this, simple_list_item_1, pairedDeviceArrayList);
-            devicesView.setAdapter(pairedDeviceAdapter);
-            // Клик по нужному устройству
-            devicesView.setOnItemClickListener((parent, view, position, id) -> {
-                String itemValue = (String) devicesView.getItemAtPosition(position);
-                String MAC = itemValue.substring(itemValue.length() - 17); // Вычленяем MAC-адрес
-                BluetoothDevice device = bluetoothAdapter.getRemoteDevice(MAC);
-                bluetoothConnector = new ThreadBluetoothConnector(device);
-                bluetoothConnector.start();  // Запускаем поток для подключения Bluetooth
-            });
+            bundleSettings.putStringArrayList("devices", pairedDeviceArrayList);
+            bundleSettings.putString("name", bluetoothAdapter.getName());
         }
+        return bundleSettings;
     }
+
+
 
     // Методы интерфейсов  MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener
     @Override
@@ -256,6 +256,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private static final int REQUEST_PERMISSION_BLUETOOTH = 1;
     private static final int REQUEST_PERMISSION_BLUETOOTH_ADMIN = 2;
     private static final int REQUEST_PERMISSION_RECORD_AUDIO = 3;
+    private static final int REQUEST_PERMISSION_READ_STORAGE = 4;
+    private static final int REQUEST_PERMISSION_WRITE_STORAGE = 5;
 
     private void showPermission(String permission, int requestCode) {
         int permissionCheck = ContextCompat.checkSelfPermission(this, permission);
@@ -326,20 +328,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     @Override
-    public void currentPlayingSelectedEvent() {
-        AudioManager manager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        int audioSessionId = manager.getActiveRecordingConfigurations().get(0).getClientAudioSessionId() - 8;
-        Log.println(Log.DEBUG, "Audio", "current audioSessionId=" + audioSessionId);
-        // Берёт сессию музыки у плеера и передает ресиверу,
-        // который будет брать из неё аудиоволны
-        if (audioSessionId != -1) {
-            receiver.startSession(audioSessionId);
-        }
-        mediaPlayer.setOnCompletionListener(this);
-    }
-
-    @Override
-    public void macSelectedEvent(BluetoothAdapter bluetoothAdapter, String mac) {
+    public void macSelectedEvent(String mac) {
         BluetoothDevice device = bluetoothAdapter.getRemoteDevice(mac);
         bluetoothConnector = new ThreadBluetoothConnector(device);
         bluetoothConnector.start();  // Запускаем поток для подключения Bluetooth

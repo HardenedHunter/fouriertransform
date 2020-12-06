@@ -10,22 +10,20 @@
     <!-- TODO: Update blank fragment layout -->
 
     <Button
-        android:id="@+id/buttonSamurai"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onSongClick"
-        android:text="Samurai"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonFool" />
+        android:id="@+id/buttonStop"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:onClick="onAudioControlClick"
+        android:text="@string/stop"
+        app:layout_constraintStart_toEndOf="@+id/buttonPlayPause"
+        app:layout_constraintTop_toTopOf="@+id/buttonPlayPause" />
 
     <Button
         android:id="@+id/buttonFool"
         android:layout_width="346dp"
         android:layout_height="47dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:onClick="onSongClick"
         android:text="Fool"
         app:layout_constraintEnd_toEndOf="parent"
@@ -37,7 +35,7 @@
         android:id="@+id/button20Khz"
         android:layout_width="346dp"
         android:layout_height="47dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:onClick="onSongClick"
         android:text="20 kHz"
         app:layout_constraintEnd_toEndOf="parent"
@@ -46,22 +44,10 @@
         app:layout_constraintTop_toBottomOf="@+id/button5Khz" />
 
     <Button
-        android:id="@+id/buttonConnectCurrent"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onCurrentClick"
-        android:text="Connect to current"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button20Khz" />
-
-    <Button
         android:id="@+id/button5Khz"
         android:layout_width="346dp"
         android:layout_height="47dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:onClick="onSongClick"
         android:text="5 kHz"
         app:layout_constraintEnd_toEndOf="parent"
@@ -83,21 +69,11 @@
         app:layout_constraintTop_toTopOf="@+id/buttonStop" />
 
     <Button
-        android:id="@+id/buttonStop"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:onClick="onAudioControlClick"
-        android:text="@string/stop"
-        app:layout_constraintStart_toEndOf="@+id/buttonPlayPause"
-        app:layout_constraintTop_toTopOf="@+id/buttonPlayPause" />
-
-    <Button
         android:id="@+id/buttonPlayPause"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="124dp"
+        android:layout_marginTop="32dp"
         android:onClick="onAudioControlClick"
         android:text="@string/playPause"
         app:layout_constraintStart_toStartOf="parent"
@@ -107,11 +83,24 @@
         android:id="@+id/buttonDrake"
         android:layout_width="346dp"
         android:layout_height="47dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="32dp"
         android:onClick="onSongClick"
         android:text="Drake"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonStop" />
+
+    <Button
+        android:id="@+id/buttonSamurai"
+        android:layout_width="346dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="36dp"
+        android:onClick="onSongClick"
+        android:text="Samurai"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonFool" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

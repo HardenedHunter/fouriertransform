@@ -8,6 +8,4 @@ public interface IPlayerEventListener {
     void stopEvent();
 
     void sinEvent();
-
-    void currentPlayingSelectedEvent();
 }
