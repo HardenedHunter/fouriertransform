@@ -10,6 +10,9 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,9 +23,12 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -44,11 +50,18 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     // Адаптер Bluetooth
     private BluetoothAdapter bluetoothAdapter;
     private Bundle settings;
+    private List<Song> songs;
+    private int currentPlayingSongPosition = -1;
+
+    private PlayerFragment playerFragment;
+    private SettingsFragment settingsFragment;
+    private SongFragment songFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getSupportActionBar().hide();
 
         settings = new Bundle();
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -76,29 +89,41 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         switch (menuItem.getItemId()) {
             case R.id.navigation_list:
                 loadList();
-                return true;
+                break;
             case R.id.navigation_home:
                 loadPlayer();
-                return true;
+                break;
             case R.id.navigation_settings:
                 loadSettings(settings);
-                return true;
+                break;
+            default:
+                return false;
         }
-        return false;
+        return true;
     }
 
     private void loadList() {
-        loadFragment(new SongFragment());
+        songFragment = new SongFragment();
+        loadFragment(songFragment);
     }
 
     private void loadSettings(Bundle settings) {
-        Fragment fragment = new SettingsFragment();
-        fragment.setArguments(settings);
-        loadFragment(fragment);
+        settingsFragment = new SettingsFragment();
+        settingsFragment.setArguments(settings);
+        loadFragment(settingsFragment);
     }
 
     private void loadPlayer() {
-        loadFragment(new PlayerFragment());
+        playerFragment = new PlayerFragment();
+        if (currentPlayingSongPosition != -1) {
+            Bundle settings = new Bundle();
+            Song song = songs.get(currentPlayingSongPosition);
+            settings.putString("artist", song.getArtist());
+            settings.putString("name", song.getTitle());
+            settings.putBoolean("isPlaying", mediaPlayer.isPlaying());
+            playerFragment.setArguments(settings);
+        }
+        loadFragment(playerFragment);
     }
 
     private void loadFragment(Fragment fragment) {
@@ -115,6 +140,13 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         if (song.getId() == 0)
             return;
 
+        TextView songArtist = getTextView(R.id.textViewSongAuthor);
+        TextView songName = getTextView(R.id.textViewSongName);
+        if (songArtist != null && songName != null) {
+            songArtist.setText(song.getArtist());
+            songName.setText(song.getTitle());
+        }
+
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
@@ -124,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         } catch (IOException e) {
             Toast.makeText(this, R.string.media_error, Toast.LENGTH_SHORT).show();
         }
+
+
 
         // Берёт сессию музыки у плеера и передает ресиверу,
         // который будет брать из неё аудиоволны
@@ -162,8 +196,15 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     @Override
-    public void songSelectedEvent(Song song) {
-        playSong(song);
+    public void songSelectedEvent(int songPosition) {
+        currentPlayingSongPosition = songPosition;
+        if (songs != null)
+            playSong(songs.get(currentPlayingSongPosition));
+    }
+
+    @Override
+    public void songsLoaded(List<Song> songs) {
+        this.songs = songs;
     }
 
 
@@ -311,52 +352,79 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 new String[]{permissionName}, permissionRequestCode);
     }
 
+    private View getPlayerView(){
+        View view = null;
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.constraintLayoutContent);
+        if (fragment != null)
+        {
+            view = fragment.getView();
+        }
+        return view;
+    }
+
+    private TextView getTextView(int resourceId) {
+        View view = getPlayerView();
+        TextView result = null;
+        if (view != null) {
+            result = findViewById(resourceId);
+        }
+        return result;
+    }
+
+    private ImageButton getButton(int resourceId) {
+        View view = getPlayerView();
+        ImageButton button = null;
+        if (view != null) {
+            button = findViewById(resourceId);
+        }
+        return button;
+    }
+
     //region listeners
     @Override
     public void startPauseEvent() {
         if (mediaPlayer == null)
             return;
+
+        ImageButton imageButton = getButton(R.id.imageButtonPlayPause);
+
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
+            if (imageButton != null) {
+                imageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_play));
+            }
         } else {
             mediaPlayer.start();
+            if (imageButton != null) {
+                imageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause));
+            }
         }
     }
 
     @Override
-    public void songSelectedEvent(int song) {
-        releaseMediaPlayer();
-        if (receiver == null)
-            receiver = new FrequencyReceiver(transmitter);
-        if (song == 0)
-            return;
-
-        mediaPlayer = MediaPlayer.create(this, song);
-        mediaPlayer.start();
-
-        // Берёт сессию музыки у плеера и передает ресиверу,
-        // который будет брать из неё аудиоволны
-        int audioSessionId = mediaPlayer.getAudioSessionId();
-        Log.println(Log.DEBUG, "Audio", "started session with audioSessionId=" + audioSessionId);
-        if (audioSessionId != -1) {
-            receiver.startSession(audioSessionId);
+    public void nextEvent() {
+        if (songs != null && currentPlayingSongPosition < songs.size() - 1) {
+            currentPlayingSongPosition++;
+            playSong(songs.get(currentPlayingSongPosition));
+            ImageButton imageButton = getButton(R.id.imageButtonPlayPause);
+            if (imageButton != null) {
+                imageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause));
+            }
         }
-        mediaPlayer.setOnCompletionListener(this);
     }
 
     @Override
-    public void stopEvent() {
-        if (mediaPlayer == null)
-            return;
-        mediaPlayer.stop();
-    }
-
-    @Override
-    public void sinEvent() {
-        if (waveGenerator != null) {
-            waveGenerator.start();
+    public void prevEvent() {
+        if (songs != null && currentPlayingSongPosition > 0) {
+            currentPlayingSongPosition--;
+            playSong(songs.get(currentPlayingSongPosition));
+            ImageButton imageButton = getButton(R.id.imageButtonPlayPause);
+            if (imageButton != null) {
+                imageButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause));
+            }
         }
     }
+
 
     @Override
     public void macSelectedEvent(String mac) {

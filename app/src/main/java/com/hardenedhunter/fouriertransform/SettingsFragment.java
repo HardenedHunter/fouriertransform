@@ -28,13 +28,10 @@ public class SettingsFragment extends Fragment {
     ISettingsEventListener settingsEventListener;
 
     private ListView listBluetooth;
-    private TextView textViewName;
 
     private static final String ARG_PARAM_DEVICES = "devices";
-    private static final String ARG_PARAM_NAME = "devices";
 
     private static ArrayList<String> devices;
-    private static String name;
 
     public SettingsFragment() {
         // Required empty public constructor
@@ -59,7 +56,6 @@ public class SettingsFragment extends Fragment {
     public static SettingsFragment newInstance() {
         SettingsFragment fragment = new SettingsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM_NAME, name);
         args.putStringArrayList(ARG_PARAM_DEVICES, devices);
         fragment.setArguments(args);
         return fragment;
@@ -70,11 +66,8 @@ public class SettingsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             devices = getArguments().getStringArrayList(ARG_PARAM_DEVICES);
-            name = getArguments().getString(ARG_PARAM_NAME);
             if (devices == null)
                 devices = new ArrayList<>();
-            if (name == null)
-                name = "null";
         }
     }
 
@@ -85,13 +78,11 @@ public class SettingsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
 
         listBluetooth = view.findViewById(R.id.listBluetooth);
-        textViewName = view.findViewById(R.id.textViewDevice);
 
         listBluetooth.setOnItemClickListener(this::onListViewClick);
 
         ArrayAdapter<String> pairedDeviceAdapter = new ArrayAdapter<>(getContext(), simple_list_item_1, devices);
         listBluetooth.setAdapter(pairedDeviceAdapter);
-        textViewName.setText(name);
 
         return view;
     }

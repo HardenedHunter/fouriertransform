@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@color/colorTransparent" android:state_pressed="false">
+        <shape>
+            <corners android:radius="6.0dip" />
+        </shape>
+    </item>
+    <item android:drawable="@color/colorPrimaryDark" android:state_pressed="true" >
+        <shape>
+            <corners android:radius="6.0dip" />
+        </shape>
+    </item>
+    <item android:drawable="@color/colorTransparent" android:state_focused="false">
+        <shape>
+            <corners android:radius="6.0dip" />
+        </shape>
+    </item>
+    <item android:drawable="@color/colorPrimaryDark" android:state_focused="true">
+        <shape>
+            <corners android:radius="6.0dip" />
+        </shape>
+    </item>
+
+</selector>

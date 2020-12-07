@@ -9,7 +9,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -22,12 +23,14 @@ public class PlayerFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String SONG_ARTIST_PARAM = "artist";
+    private static final String SONG_NAME_PARAM = "name";
+    private static final String SONG_PLAYING_PARAM = "isPlaying";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static String songArtist;
+    private static String songName;
+    private static boolean isPlaying;
 
     public PlayerFragment() {
         // Required empty public constructor
@@ -52,62 +55,39 @@ public class PlayerFragment extends Fragment {
     // TODO: Rename and change types and number of parameters
     public static PlayerFragment newInstance() {
         PlayerFragment fragment = new PlayerFragment();
-        /*Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);*/
+        Bundle args = new Bundle();
+        args.putString(SONG_ARTIST_PARAM, songArtist);
+        args.putString(SONG_NAME_PARAM, songName);
+        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }*/
+        if (getArguments() != null) {
+            songArtist = getArguments().getString(SONG_ARTIST_PARAM);
+            songName = getArguments().getString(SONG_NAME_PARAM);
+            isPlaying = getArguments().getBoolean(SONG_PLAYING_PARAM);
+        }
     }
 
     // Обработчик кнопок для управления плееером (старт, пауза, стоп и т. п.)
     public void onAudioControlClick(View view) {
         switch (view.getId()) {
-            case R.id.buttonPlayPause:
+            case R.id.imageButtonPlayPause:
                 playerEventListener.startPauseEvent();
                 break;
-            case R.id.buttonStop:
-                playerEventListener.stopEvent();
+            case R.id.imageButtonNext:
+                playerEventListener.nextEvent();
+                break;
+            case R.id.imageButtonPrev:
+                playerEventListener.prevEvent();
                 break;
         }
     }
 
-    public void onWaveClick(View view) {
-        playerEventListener.sinEvent();
-    }
 
-    // Обработчик кнопок для старта музыки, их надо убрать и сделать список музыки с девайса.
-    // Все песни пока лежат в ./res/raw
-    // Также есть одна идея с audioSessionId, свяжишь со мной как дойдёшь сюда.
-    public void onSongClick(View view) {
-        int song = 0;
-        switch (view.getId()) {
-            case R.id.buttonDrake:
-                song = R.raw.drake;
-                break;
-            case R.id.buttonSamurai:
-                song = R.raw.ohlsson;
-                break;
-            case R.id.buttonFool:
-                song = R.raw.fool;
-                break;
-            case R.id.button5Khz:
-                song = R.raw.b5;
-                break;
-            case R.id.button20Khz:
-                song = R.raw.b20;
-                break;
-        }
-        playerEventListener.songSelectedEvent(song);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -115,23 +95,26 @@ public class PlayerFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_player, container, false);
 
-        Button btnStart = v.findViewById(R.id.buttonPlayPause);
-        Button btnStop = v.findViewById(R.id.buttonStop);
-        Button btnSin = v.findViewById(R.id.buttonSin);
-        Button btnDrake = v.findViewById(R.id.buttonDrake);
-        Button btnFool = v.findViewById(R.id.buttonFool);
-        Button btnSamurai = v.findViewById(R.id.buttonSamurai);
-        Button btn5khz = v.findViewById(R.id.button5Khz);
-        Button btn20khz = v.findViewById(R.id.button20Khz);
+        ImageButton btnStart = v.findViewById(R.id.imageButtonPlayPause);
+        ImageButton btnNext = v.findViewById(R.id.imageButtonNext);
+        ImageButton btnPrev = v.findViewById(R.id.imageButtonPrev);
+
+        TextView textViewName = v.findViewById(R.id.textViewSongName);
+        TextView textViewArtist = v.findViewById(R.id.textViewSongAuthor);
+
+        if (songName != null && songArtist != null){
+            textViewName.setText(songName);
+            textViewArtist.setText(songArtist);
+
+            if (isPlaying)
+                btnStart.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause));
+            else
+                btnStart.setImageDrawable(getResources().getDrawable(R.drawable.ic_play));
+        }
 
         btnStart.setOnClickListener(this::onAudioControlClick);
-        btnStop.setOnClickListener(this::onAudioControlClick);
-        btnSin.setOnClickListener(this::onWaveClick);
-        btn5khz.setOnClickListener(this::onSongClick);
-        btn20khz.setOnClickListener(this::onSongClick);
-        btnDrake.setOnClickListener(this::onSongClick);
-        btnFool.setOnClickListener(this::onSongClick);
-        btnSamurai.setOnClickListener(this::onSongClick);
+        btnNext.setOnClickListener(this::onAudioControlClick);
+        btnPrev.setOnClickListener(this::onAudioControlClick);
 
         return v;
     }

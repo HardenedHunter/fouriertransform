@@ -84,6 +84,7 @@ public class SongFragment extends Fragment {
         songListView = view.findViewById(R.id.listSongs);
 
         songList = getSongList();
+        songEventListener.songsLoaded(songList);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
@@ -134,6 +135,6 @@ public class SongFragment extends Fragment {
     }
 
     private void onSongClick(View v, int position) {
-        songEventListener.songSelectedEvent(songList.get(position));
+        songEventListener.songSelectedEvent(position);
     }
 }

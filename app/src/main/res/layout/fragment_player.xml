@@ -9,98 +9,61 @@
 
     <!-- TODO: Update blank fragment layout -->
 
-    <Button
-        android:id="@+id/buttonStop"
+    <TextView
+        android:id="@+id/textViewSongAuthor"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="@string/song_author"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/textViewSongName"
+        app:layout_constraintTop_toBottomOf="@+id/textViewSongName" />
+
+    <TextView
+        android:id="@+id/textViewSongName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:onClick="onAudioControlClick"
-        android:text="@string/stop"
-        app:layout_constraintStart_toEndOf="@+id/buttonPlayPause"
-        app:layout_constraintTop_toTopOf="@+id/buttonPlayPause" />
-
-    <Button
-        android:id="@+id/buttonFool"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
         android:layout_marginTop="16dp"
-        android:onClick="onSongClick"
-        android:text="Fool"
+        android:layout_marginEnd="16dp"
+        android:elegantTextHeight="true"
+        android:text="@string/song_name"
+        android:textColor="@color/textBlack"
+        android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDrake" />
-
-    <Button
-        android:id="@+id/button20Khz"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onSongClick"
-        android:text="20 kHz"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button5Khz" />
-
-    <Button
-        android:id="@+id/button5Khz"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onSongClick"
-        android:text="5 kHz"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonSamurai" />
-
-    <Button
-        android:id="@+id/buttonSin"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="32dp"
-        android:onClick="onWaveClick"
-        android:text="Sin"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/buttonStop"
-        app:layout_constraintTop_toTopOf="@+id/buttonStop" />
-
-    <Button
-        android:id="@+id/buttonPlayPause"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"
-        android:onClick="onAudioControlClick"
-        android:text="@string/playPause"
+        app:layout_constraintHorizontal_bias="0.09"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/buttonDrake"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="32dp"
-        android:onClick="onSongClick"
-        android:text="Drake"
+    <ImageButton
+        android:id="@+id/imageButtonPlayPause"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginBottom="480dp"
+        android:background="@drawable/button"
+        android:src="@drawable/ic_play"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonStop" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/buttonSamurai"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="16dp"
-        android:onClick="onSongClick"
-        android:text="Samurai"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.492"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonFool" />
+    <ImageButton
+        android:id="@+id/imageButtonPrev"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/button"
+        android:src="@drawable/ic_prev_track"
+        app:layout_constraintEnd_toStartOf="@+id/imageButtonPlayPause"
+        app:layout_constraintTop_toTopOf="@+id/imageButtonPlayPause" />
+
+    <ImageButton
+        android:id="@+id/imageButtonNext"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/button"
+        android:src="@drawable/ic_next_track"
+        app:layout_constraintStart_toEndOf="@+id/imageButtonPlayPause"
+        app:layout_constraintTop_toTopOf="@+id/imageButtonPlayPause" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

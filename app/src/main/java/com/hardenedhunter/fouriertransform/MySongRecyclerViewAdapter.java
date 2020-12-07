@@ -2,6 +2,8 @@ package com.hardenedhunter.fouriertransform;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +21,7 @@ public class MySongRecyclerViewAdapter extends RecyclerView.Adapter<MySongRecycl
 
     private final CustomItemClickListener clickListener;
 
+
     public MySongRecyclerViewAdapter(List<Song> items, CustomItemClickListener listener) {
         mValues = items;
         clickListener = listener;
@@ -34,10 +37,18 @@ public class MySongRecyclerViewAdapter extends RecyclerView.Adapter<MySongRecycl
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
+
         holder.mItem = mValues.get(position);
         holder.songAuthorView.setText(mValues.get(position).getArtist());
         holder.songNameView.setText(mValues.get(position).getTitle());
-        holder.itemView.setOnClickListener(v -> clickListener.onItemClick(v, position));
+
+        Context context = holder.itemView.getContext();
+
+        holder.itemView.setOnClickListener(v -> {
+            clickListener.onItemClick(v, position);
+        });
+
+
     }
 
     @Override

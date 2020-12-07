@@ -3,9 +3,8 @@ package com.hardenedhunter.fouriertransform;
 public interface IPlayerEventListener {
     void startPauseEvent();
 
-    void songSelectedEvent(int song);
+    void nextEvent();
 
-    void stopEvent();
+    void prevEvent();
 
-    void sinEvent();
 }
