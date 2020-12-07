@@ -7,117 +7,21 @@
     tools:context=".MainActivity">
 
 
-    <TextView
-        android:id="@+id/textViewDevice"
-        android:layout_width="108dp"
-        android:layout_height="27dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="52dp"
-        android:text=""
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayoutContent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
-    <ListView
-        android:id="@+id/listBluetooth"
-        android:layout_width="346dp"
-        android:layout_height="118dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="12dp"
-        android:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDevice" />
-
-    <Button
-        android:id="@+id/buttonPlayPause"
-        android:layout_width="wrap_content"
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationViewMain"
+        android:layout_width="413dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="36dp"
-        android:onClick="onAudioControlClick"
-        android:text="@string/playPause"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/listBluetooth" />
-
-    <Button
-        android:id="@+id/buttonStop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:onClick="onAudioControlClick"
-        android:text="@string/stop"
+        android:background="@color/colorPrimaryDark"
+        app:itemBackground="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="@+id/constraintLayoutContent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/buttonPlayPause"
-        app:layout_constraintTop_toBottomOf="@+id/listBluetooth" />
-
-    <Button
-        android:id="@+id/buttonDrake"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="60dp"
-        android:onClick="onSongClick"
-        android:text="Drake"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.465"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonStop" />
-
-    <Button
-        android:id="@+id/buttonSamurai"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="4dp"
-        android:onClick="onSongClick"
-        android:text="Samurai"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.465"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDrake" />
-
-    <Button
-        android:id="@+id/buttonFool"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="4dp"
-        android:onClick="onSongClick"
-        android:text="Fool"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.465"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonSamurai" />
-
-    <Button
-        android:id="@+id/button5Khz"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="4dp"
-        android:onClick="onSongClick"
-        android:text="5 kHz"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.465"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonFool" />
-
-    <Button
-        android:id="@+id/button20Khz"
-        android:layout_width="346dp"
-        android:layout_height="47dp"
-        android:layout_marginTop="56dp"
-        android:onClick="onSongClick"
-        android:text="20 kHz"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.465"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonFool" />
-
-    <Button
-        android:id="@+id/buttonSin"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:onClick="OnWaveClick"
-        android:text="Sin"
-        app:layout_constraintStart_toEndOf="@+id/buttonStop"
-        app:layout_constraintTop_toBottomOf="@+id/listBluetooth" />
+        app:menu="@menu/menu_bottom_main"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
