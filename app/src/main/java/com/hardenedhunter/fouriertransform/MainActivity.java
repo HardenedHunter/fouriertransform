@@ -4,16 +4,12 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
@@ -31,10 +26,8 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-import static android.R.layout.simple_list_item_1;
-
 public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnCompletionListener, IPlayerEventListener, ISettingsEventListener {
+        MediaPlayer.OnCompletionListener, IPlayerEventListener, ISettingsEventListener, ISongEventListener {
     // UUID этого устройства для Bluetooth
     private static final UUID deviceUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -74,12 +67,16 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         showPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUEST_PERMISSION_WRITE_STORAGE);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.bottomNavigationViewMain);
+        navigation.setSelectedItemId(R.id.navigation_home);
 
         navigation.setOnNavigationItemSelectedListener(this::onNavigationItemSelectedListener);
     }
 
     private boolean onNavigationItemSelectedListener(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
+            case R.id.navigation_list:
+                loadList();
+                return true;
             case R.id.navigation_home:
                 loadPlayer();
                 return true;
@@ -88,6 +85,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 return true;
         }
         return false;
+    }
+
+    private void loadList() {
+        Fragment fragment = new SongFragment();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.constraintLayoutContent, fragment)
+                .commitNow();
     }
 
     private void loadSettings(Bundle settings) {
@@ -107,6 +112,33 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
                 .commitNow();
     }
 
+    private void playSong(Song song) {
+        releaseMediaPlayer();
+        if (receiver == null)
+            receiver = new FrequencyReceiver(transmitter);
+        if (song.getId() == 0)
+            return;
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mediaPlayer.setDataSource(song.getPath());
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        } catch (IOException e) {
+            Toast.makeText(this, R.string.media_error, Toast.LENGTH_SHORT).show();
+        }
+
+        // Берёт сессию музыки у плеера и передает ресиверу,
+        // который будет брать из неё аудиоволны
+        int audioSessionId = mediaPlayer.getAudioSessionId();
+        Log.println(Log.DEBUG, "Audio", "started session with audioSessionId=" + audioSessionId);
+        if (audioSessionId != -1) {
+            receiver.startSession(audioSessionId);
+        }
+        mediaPlayer.setOnCompletionListener(this);
+    }
+
     // Создание списка сопряжённых Bluetooth-устройств
     private Bundle setup(BluetoothAdapter bluetoothAdapter) {
         Bundle bundleSettings = new Bundle();
@@ -123,8 +155,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         return bundleSettings;
     }
 
-
-
     // Методы интерфейсов  MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener
     @Override
     public void onCompletion(MediaPlayer mp) {
@@ -133,6 +163,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     @Override
     public void onPrepared(MediaPlayer mp) {
         mp.start();
+    }
+
+    @Override
+    public void songSelectedEvent(Song song) {
+        playSong(song);
     }
 
 
