@@ -88,24 +88,20 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     private void loadList() {
-        Fragment fragment = new SongFragment();
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.constraintLayoutContent, fragment)
-                .commitNow();
+        loadFragment(new SongFragment());
     }
 
     private void loadSettings(Bundle settings) {
         Fragment fragment = new SettingsFragment();
         fragment.setArguments(settings);
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.constraintLayoutContent, fragment)
-                .commitNow();
+        loadFragment(fragment);
     }
 
     private void loadPlayer() {
-        Fragment fragment = new PlayerFragment();
+        loadFragment(new PlayerFragment());
+    }
+
+    private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.constraintLayoutContent, fragment)
