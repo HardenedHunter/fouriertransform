@@ -12,6 +12,7 @@ public class FrequencyReceiver {
     private static final int RESPONSE_SIZE = 16;       // Размер выходного массива
     private static final int CAPTURE_SIZE = 256;       // Размер захватываемых данных
     private static final float SMOOTH = 0.3f;          // Плавность изменений
+    private static final float LOW_PASS = 1;           // Погрешность сигнала
 
     public FrequencyReceiver(BluetoothTransmitter transmitter) {
         this.transmitter = transmitter;
@@ -23,7 +24,10 @@ public class FrequencyReceiver {
     // Сюда сохраняются значения с предыдущего захвата для плавности изменений
     private static final float[] magnitudeOld = new float[RESPONSE_SIZE];
     // Прошедшее с итерации время и нужное время на итерацию
-    private static final byte[] time = new byte[]{0, 16};
+    private static final byte[] time = new byte[]{0, 0};
+
+    private static long timeSpent = 0;
+    private static long currentTime = 0;
 
     public void release() {
         if (visualizer != null)
@@ -41,7 +45,10 @@ public class FrequencyReceiver {
 
             @Override
             public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-                long startTime = System.nanoTime();
+                currentTime = System.nanoTime();
+                timeSpent = currentTime;
+
+//                long startTime = System.nanoTime();
                 // Преобразовали данные fft в амплитуды соотв. частот
                 float[] magnitudes = fftToMagnitude(fft);
 
@@ -57,10 +64,10 @@ public class FrequencyReceiver {
                     if (i != 0) {
                         linesBetween = (byte) (posOffset[i] - posOffset[i - 1]);
                         for (byte j = 0; j < linesBetween; j++)
-                            magnitude += (float) ((float) j / linesBetween) * magnitudes[posOffset[i] - linesBetween + j];
+                            magnitude += ((float) j / linesBetween) * magnitudes[posOffset[i] - linesBetween + j];
                         linesBetween = (byte) (posOffset[i + 1] - posOffset[i]);
                         for (byte j = 0; j < linesBetween; j++)
-                            magnitude += (float) ((float) j / linesBetween) * magnitudes[posOffset[i] + linesBetween - j];
+                            magnitude += ((float) j / linesBetween) * magnitudes[posOffset[i] + linesBetween - j];
                     }
 
                     // Чтобы не было скачков, берём частями текущее значение и предыдущее
@@ -72,13 +79,12 @@ public class FrequencyReceiver {
                     response[i] = magnitude;
                 }
 
-                if (maxValue > 0) {
+                if (maxValue > LOW_PASS) {
                     for (int pos = 0; pos < RESPONSE_SIZE; pos++) {
                         // Приводим результат к диапазону 1-16
                         processedResponse[pos] = (byte) (response[pos] * 16 / maxValue);
                     }
-//                    processedResponse[16] = 100;
-                    time[0] = (byte) ((System.nanoTime() - startTime) / 1000000);
+//                    time[0] = (byte) ((System.nanoTime() - startTime) / 1000000);
                     if (transmitter != null)
                         transmitter.doInBackground(processedResponse, time);
                 }
